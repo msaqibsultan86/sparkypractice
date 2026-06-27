@@ -1,9 +1,6 @@
-name: Build SparkPractice
+name: Build
 
-on:
-  push:
-    branches: [ "**" ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions:
   contents: write
@@ -12,42 +9,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Unzip the uploaded source zip
+      - name: Unzip
         run: |
           ZIP=$(ls *.zip | head -n1)
-          echo "Unzipping $ZIP ..."
           unzip -o "$ZIP" -d .
-          if [ ! -f pom.xml ]; then
-            POM=$(find . -name pom.xml | head -n1)
-            DIR=$(dirname "$POM")
-            cp -r "$DIR"/. .
-          fi
-          ls -la
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-          cache: maven
 
-      - name: Build with Maven
+      - name: Build
         run: mvn -B clean package
 
-      - name: Upload JAR artifact
+      - name: Get jar
         uses: actions/upload-artifact@v4
         with:
           name: SparkPractice
-          path: target/SparkPractice-*.jar
-          if-no-files-found: error
-
-      - name: Publish raw jar to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: SparkPractice (latest build)
-          files: target/SparkPractice-*.jar
-          prerelease: true
+          path: target/*.jar
